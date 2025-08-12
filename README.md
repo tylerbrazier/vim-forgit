@@ -19,7 +19,6 @@ This plugin includes autocommands that will:
 ## TODO
 
 - don't bother if `autochdir` is on
-- `let g:netrw_keepdir=1`?
 - add debug logs?
 - show the cwd somehow (set statusline or echo it when it changes)
 - how will it work with submodules?
