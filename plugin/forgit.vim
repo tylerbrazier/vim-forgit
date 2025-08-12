@@ -1,6 +1,10 @@
 " Autocommands for setting grep and path options in git projects;
 " 'path' will be a list of all the tracked subdirectories in the project
-" so ignored subdirs (e.g. node_modules) won't burn CPU cycles on :find
+" so ignored subdirs (e.g. node_modules) won't burn CPU cycles on :find.
+" Note that if you cd into a subdirectory of the project, 'path' will
+" still be set to all the subdirectories of the project root so it may
+" still include dirs that aren't subdirs of the current dir; vim doesn't
+" seem to have a problem with this.
 
 if exists("g:loaded_forgit") || &cp
 	finish
@@ -79,7 +83,8 @@ function s:get_subdirs(proj_dir)
 	endif
 
 	" TODO make this async
-	let l:cmd = 'git -C '.shellescape(a:proj_dir).' ls-tree -rd --name-only HEAD'
+	let l:cmd = 'git -C '.shellescape(a:proj_dir)
+				\.' ls-tree -rd --name-only HEAD'
 	let l:subdirs = join(systemlist(l:cmd), ',').',,'
 	if v:shell_error
 		return
