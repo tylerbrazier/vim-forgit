@@ -13,7 +13,7 @@ let g:loaded_forgit = 1
 
 augroup forgit
 	autocmd!
-	autocmd BufEnter * call s:lcd_to_proj_root(expand('%'))
+	autocmd BufEnter * call s:lcd_to_proj_root()
 	autocmd VimEnter,DirChanged * call s:set_opts()
 augroup END
 
@@ -23,9 +23,9 @@ augroup END
 " (the subdirectories are used to set 'path')
 let s:cache = {}
 
-" :lcd to the git project directory of file
-function s:lcd_to_proj_root(file)
-	let l:proj_dir = s:get_proj_dir(fnamemodify(a:file, ':p:h'))
+" :lcd to the git project directory of the current file
+function s:lcd_to_proj_root()
+	let l:proj_dir = s:get_proj_dir(expand('%:p:h'))
 	if l:proj_dir != getcwd()
 		execute 'lcd' l:proj_dir
 		" need to call set_opts() manually (:help autocmd-nested)
