@@ -45,7 +45,7 @@ function s:get_proj_dir(dir)
 	endfor
 
 	" TODO make this async
-	let l:cmd = 'git -C '.shellescape(a:dir).' rev-parse --show-toplevel'
+	let l:cmd = 'git -C '..shellescape(a:dir)..' rev-parse --show-toplevel'
 	let l:proj_dir = trim(system(l:cmd))
 	if v:shell_error
 		" not in a git project
@@ -83,9 +83,9 @@ function s:get_subdirs(proj_dir)
 	endif
 
 	" TODO make this async
-	let l:cmd = 'git -C '.shellescape(a:proj_dir)
-				\.' ls-tree -rd --name-only HEAD'
-	let l:subdirs = join(systemlist(l:cmd), ',').',,'
+	let l:cmd = 'git -C '..shellescape(a:proj_dir)
+				\..' ls-tree -rd --name-only HEAD'
+	let l:subdirs = join(systemlist(l:cmd), ',')..',,'
 	if v:shell_error
 		return
 	endif
