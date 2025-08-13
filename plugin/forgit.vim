@@ -37,11 +37,11 @@ endfunction
 " otherwise return 0
 function s:get_proj_dir(dir)
 	" check the cache first
-	for proj_dir in keys(s:cache)
+	for l:proj_dir in keys(s:cache)
 		" if proj_dir is a parent of dir
 		" (NOTE this won't work in Windows)
-		if match(a:dir..'/', proj_dir..'/') == 0
-			return proj_dir
+		if match(a:dir..'/', l:proj_dir..'/') == 0
+			return l:proj_dir
 		endif
 	endfor
 
