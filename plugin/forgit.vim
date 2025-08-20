@@ -17,6 +17,10 @@ augroup forgit
 	autocmd VimEnter,DirChanged * call s:set_opts()
 augroup END
 
+if empty(&tabline)
+	set tabline=%!ForgitTabline()
+endif
+
 " The cache is used to avoid unnecessary external calls to git.
 " It's a dictionary of:
 " git project directory -> subdirectories
@@ -94,4 +98,44 @@ function s:get_subdirs(proj_dir)
 	let s:cache[a:proj_dir] = subdirs
 
 	return subdirs
+endfunction
+
+" Modified from the example in :help setting-tabline
+function ForgitTabline()
+	let tabline = ''
+	for i in range(tabpagenr('$'))
+		" select the highlighting
+		if i + 1 == tabpagenr()
+			let tabline ..= '%#TabLineSel#'
+		else
+			let tabline ..= '%#TabLine#'
+		endif
+
+		" set the tab page number (for mouse clicks)
+		let tabline ..= '%'..(i+1)..'T'
+
+		" the label is made by MyTabLabel()
+		let tabline ..= ' %{ForgitTabLabel('..(i+1)..')} '
+	endfor
+
+	" after the last tab fill with TabLineFill and reset tab page nr
+	let tabline ..= '%#TabLineFill#%T'
+
+	return tabline
+endfunction
+
+function ForgitTabLabel(tab_n)
+	let path = ''
+	let window_n = tabpagewinnr(a:tab_n)
+	let proj_dir = s:get_proj_dir(getcwd(window_n, a:tab_n))
+
+	if empty(proj_dir)
+		" fall back to using the file name
+		let buf_list = tabpagebuflist(a:tab_n)
+		let path = bufname(buf_list[window_n - 1])
+	else
+		let path = proj_dir
+	endif
+
+	return fnamemodify(path, ':t') ?? '[No Name]'
 endfunction
