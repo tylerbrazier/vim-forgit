@@ -25,9 +25,9 @@ let s:cache = {}
 
 " :lcd to the git project directory of the current file
 function s:lcd_to_proj_root()
-	let l:proj_dir = s:get_proj_dir(expand('%:p:h'))
-	if l:proj_dir != getcwd()
-		execute 'lcd' l:proj_dir
+	let proj_dir = s:get_proj_dir(expand('%:p:h'))
+	if proj_dir != getcwd()
+		execute 'lcd' proj_dir
 		" need to call set_opts() manually (:help autocmd-nested)
 		call s:set_opts()
 	endif
@@ -37,39 +37,39 @@ endfunction
 " otherwise return 0
 function s:get_proj_dir(dir)
 	" check the cache first
-	for l:proj_dir in keys(s:cache)
+	for proj_dir in keys(s:cache)
 		" if proj_dir is a parent of dir
 		" (NOTE this won't work in Windows)
-		if match(a:dir..'/', l:proj_dir..'/') == 0
-			return l:proj_dir
+		if match(a:dir..'/', proj_dir..'/') == 0
+			return proj_dir
 		endif
 	endfor
 
 	" TODO make this async
-	let l:cmd = 'git -C '..shellescape(a:dir)..' rev-parse --show-toplevel'
-	let l:proj_dir = trim(system(l:cmd))
+	let cmd = 'git -C '..shellescape(a:dir)..' rev-parse --show-toplevel'
+	let proj_dir = trim(system(cmd))
 	if v:shell_error
 		" not in a git project
 		return
 	endif
 
 	" add project dir key to the cache; value will be set later
-	let s:cache[l:proj_dir] = ''
+	let s:cache[proj_dir] = ''
 
-	return l:proj_dir
+	return proj_dir
 endfunction
 
 " Sets 'grepprg', 'grepformat', and 'path' for :grep, :find, etc.
 function s:set_opts()
-	let l:proj_dir = s:get_proj_dir(getcwd())
+	let proj_dir = s:get_proj_dir(getcwd())
 
-	if empty(l:proj_dir)
+	if empty(proj_dir)
 		return
 	endif
 
-	let l:subdirs = s:get_subdirs(l:proj_dir)
-	if !empty(l:subdirs)
-		let &path = l:subdirs
+	let subdirs = s:get_subdirs(proj_dir)
+	if !empty(subdirs)
+		let &path = subdirs
 	endif
 
 	set grepprg=git\ grep\ -I\ -n\ --column
@@ -84,14 +84,14 @@ function s:get_subdirs(proj_dir)
 	endif
 
 	" TODO make this async
-	let l:cmd = 'git -C '..shellescape(a:proj_dir)
+	let cmd = 'git -C '..shellescape(a:proj_dir)
 				\..' ls-tree -rd --name-only HEAD'
-	let l:subdirs = join(systemlist(l:cmd), ',')..',,'
+	let subdirs = join(systemlist(cmd), ',')..',,'
 	if v:shell_error
 		return
 	endif
 
-	let s:cache[a:proj_dir] = l:subdirs
+	let s:cache[a:proj_dir] = subdirs
 
-	return l:subdirs
+	return subdirs
 endfunction
