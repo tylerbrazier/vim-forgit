@@ -11,6 +11,19 @@ if exists("g:loaded_forgit") || &cp
 endif
 let g:loaded_forgit = 1
 
+" For debugging:
+" :let g:debug_forgit = 1
+" :vertical term tail -f ~/.forgit.log
+let g:debug_forgit = 0
+" absolute path for log file because of changing cwd
+let s:debug_log = expand('$HOME/.forgit.log')
+
+" The cache is used to avoid unnecessary external calls to git.
+" It's a dictionary of:
+" git project directory -> subdirectories
+" (the subdirectories are used to set 'path')
+let s:cache = {}
+
 augroup forgit
 	autocmd!
 	autocmd BufEnter * call s:lcd_to_proj_root()
@@ -21,16 +34,21 @@ if empty(&tabline)
 	set tabline=%!ForgitTabline()
 endif
 
-" The cache is used to avoid unnecessary external calls to git.
-" It's a dictionary of:
-" git project directory -> subdirectories
-" (the subdirectories are used to set 'path')
-let s:cache = {}
+function s:debug(message)
+	if empty(g:debug_forgit)
+		return
+	endif
+
+	let timestamp = strftime('%H:%M:%S')
+	let line = timestamp..' '..a:message
+	call writefile([line], s:debug_log, 'as')
+endfunction
 
 " :lcd to the git project directory of the current file
 function s:lcd_to_proj_root()
 	let proj_dir = s:get_proj_dir(expand('%:p:h'))
 	if proj_dir != getcwd()
+		call s:debug(':lcd '..proj_dir)
 		execute 'lcd' proj_dir
 		" need to call set_opts() manually (:help autocmd-nested)
 		call s:set_opts()
@@ -40,20 +58,27 @@ endfunction
 " If dir is in a git project then return the top level project directory;
 " otherwise return 0
 function s:get_proj_dir(dir)
+	call s:debug('get_proj_dir('..a:dir..')')
+
 	" check the cache first
 	for proj_dir in keys(s:cache)
 		" if proj_dir is a parent of dir
-		" (NOTE this won't work in Windows)
+		" (NOTE this probably won't work in Windows)
 		if match(a:dir..'/', proj_dir..'/') == 0
+			call s:debug('cache hit: '..proj_dir)
 			return proj_dir
 		endif
 	endfor
 
 	" TODO make this async
 	let cmd = 'git -C '..shellescape(a:dir)..' rev-parse --show-toplevel'
+	call s:debug('cache miss. running: '..cmd)
 	let proj_dir = trim(system(cmd))
+	call s:debug('result: '..proj_dir)
+
 	if v:shell_error
 		" not in a git project
+		call s:debug('v:shell_error = '..v:shell_error)
 		return
 	endif
 
@@ -83,15 +108,22 @@ endfunction
 " Returns all the subdirectories of proj_dir, separated by commas;
 " otherwise returns 0
 function s:get_subdirs(proj_dir)
+	call s:debug('get_subdirs('..a:proj_dir..')')
+
 	if has_key(s:cache, a:proj_dir) && !empty(s:cache[a:proj_dir])
+		call s:debug('cache hit: '..s:cache[a:proj_dir])
 		return s:cache[a:proj_dir]
 	endif
 
 	" TODO make this async
 	let cmd = 'git -C '..shellescape(a:proj_dir)
 				\..' ls-tree -rd --name-only HEAD'
+	call s:debug('cache miss. running: '..cmd)
 	let subdirs = join(systemlist(cmd), ',')..',,'
+	call s:debug('result: '..subdirs)
+
 	if v:shell_error
+		call s:debug('v:shell_error = '..v:shell_error)
 		return
 	endif
 

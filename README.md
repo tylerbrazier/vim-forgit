@@ -22,7 +22,6 @@ directory for each tab, useful when you have multiple projects open at once.
 ## TODO
 
 - don't `:lcd` if `autochdir` is on
-- add debug logs?
 - if a tab has two repos show them both like `repoA|repoB`
 - if there's more than two should they all be shown?
 - show project dir in statusline
