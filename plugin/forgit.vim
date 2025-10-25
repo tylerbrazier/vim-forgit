@@ -46,6 +46,12 @@ endfunction
 
 " :lcd to the git project directory of the current file
 function s:lcd_to_proj_root()
+	" buftype is empty for a normal file
+	if !empty(&buftype)
+		call s:debug('skipping :lcd because buftype='..&buftype)
+		return
+	endif
+
 	let proj_dir = s:get_proj_dir(expand('%:p:h'))
 
 	if empty(proj_dir) || proj_dir == getcwd()
