@@ -47,12 +47,15 @@ endfunction
 " :lcd to the git project directory of the current file
 function s:lcd_to_proj_root()
 	let proj_dir = s:get_proj_dir(expand('%:p:h'))
-	if proj_dir != getcwd()
-		call s:debug(':lcd '..proj_dir)
-		execute 'lcd' proj_dir
-		" need to call set_opts() manually (:help autocmd-nested)
-		call s:set_opts()
+
+	if empty(proj_dir) || proj_dir == getcwd()
+		return
 	endif
+
+	call s:debug(':lcd '..proj_dir)
+	execute 'lcd' proj_dir
+	" need to call set_opts() manually (:help autocmd-nested)
+	call s:set_opts()
 endfunction
 
 " If dir is in a git project then return the top level project directory;
