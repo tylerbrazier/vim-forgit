@@ -92,6 +92,23 @@ function s:lcd_to_proj_root()
 	call s:set_opts()
 endfunction
 
+" Sets 'grepprg', 'grepformat', and 'path' for :grep, :find, etc.
+function s:set_opts()
+	call s:debug('set_opts()')
+
+	let path = s:get_path(getcwd())
+
+	if empty(path)
+		call s:debug('not setting opts because empty path')
+		return
+	endif
+
+	call s:debug('setting grep opts and path='..path)
+	let &path = path
+	set grepprg=git\ grep\ -I\ -n\ --column
+	set grepformat=%f:%l:%c:%m
+endfunction
+
 " If dir is in a git project then return the top level project directory;
 " otherwise return 0
 function s:get_proj_dir(dir)
@@ -118,23 +135,6 @@ function s:get_proj_dir(dir)
 	call s:log_cache()
 
 	return proj_dir
-endfunction
-
-" Sets 'grepprg', 'grepformat', and 'path' for :grep, :find, etc.
-function s:set_opts()
-	call s:debug('set_opts()')
-
-	let path = s:get_path(getcwd())
-
-	if empty(path)
-		call s:debug('not setting opts because empty path')
-		return
-	endif
-
-	call s:debug('setting grep opts and path='..path)
-	let &path = path
-	set grepprg=git\ grep\ -I\ -n\ --column
-	set grepformat=%f:%l:%c:%m
 endfunction
 
 function s:get_path(dir)
