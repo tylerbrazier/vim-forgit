@@ -28,5 +28,3 @@ directory for each tab, useful when you have multiple projects open at once.
 - how will it work with submodules?
 - restore opts when moving out of a git project
 - make git calls async (then also don't need to worry about nested autocmds)
-- should non-git dirs be cached?
-  `git` is executed every time a nonproject buffer is entered

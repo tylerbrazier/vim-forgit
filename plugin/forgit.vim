@@ -19,9 +19,19 @@ let g:debug_forgit = 0
 let s:debug_log = expand('$HOME/.forgit.log')
 
 " The cache is used to avoid unnecessary external calls to git.
-" It's a dictionary of:
-" git project directory -> subdirectories
-" (the subdirectories are used to set 'path')
+" It's a dictionary like:
+" {
+" 	'/some/working/dir': {
+" 		'proj_dir': '/some/working',
+" 		'path': 'dir,,'
+" 	},
+"
+" 	'/another/working/dir': {
+" 		'proj_dir': 0,
+" 		'path': 0
+" 	}
+" }
+" The second entry is the cache isn't a part of a git project.
 let s:cache = {}
 
 augroup forgit
@@ -40,8 +50,26 @@ function s:debug(message)
 	endif
 
 	let timestamp = strftime('%H:%M:%S')
-	let line = timestamp..' '..a:message
-	call writefile([line], s:debug_log, 'as')
+	call writefile([timestamp..' '..a:message], s:debug_log, 'a')
+endfunction
+
+function s:log_cache()
+	if empty(g:debug_forgit)
+		return
+	endif
+
+	let timestamp = strftime('%H:%M:%S')
+	let result = [timestamp..' cache:']
+
+	for [dir, props] in items(s:cache)
+		call add(result, "\t"..dir)
+
+		for [prop, value] in items(props)
+			call add(result, "\t\t"..prop..':'..value)
+		endfor
+	endfor
+
+	call writefile(result, s:debug_log, 'a')
 endfunction
 
 " :lcd to the git project directory of the current file
@@ -70,75 +98,69 @@ function s:get_proj_dir(dir)
 	call s:debug('get_proj_dir('..a:dir..')')
 
 	" check the cache first
-	for proj_dir in keys(s:cache)
-		" if proj_dir is a parent of dir
-		" (NOTE this probably won't work in Windows)
-		if match(a:dir..'/', proj_dir..'/') == 0
-			call s:debug('cache hit: '..proj_dir)
-			return proj_dir
-		endif
-	endfor
+	if !has_key(s:cache, a:dir)
+		let s:cache[a:dir] = {}
+	endif
+	if has_key(s:cache[a:dir], 'proj_dir')
+		call s:debug('cache hit: '..s:cache[a:dir].proj_dir)
+		return s:cache[a:dir].proj_dir
+	endif
 
 	" TODO make this async
 	let cmd = 'git -C '..shellescape(a:dir)..' rev-parse --show-toplevel'
 	call s:debug('cache miss. running: '..cmd)
-	let proj_dir = trim(system(cmd))
-	call s:debug('result: '..proj_dir)
+	let cmd_result = trim(system(cmd))
+	call s:debug('result: '..cmd_result)
 
-	if v:shell_error
-		" not in a git project
-		call s:debug('v:shell_error = '..v:shell_error)
-		return
-	endif
+	let proj_dir = v:shell_error ? 0 : cmd_result
 
-	" add project dir key to the cache; value will be set later
-	let s:cache[proj_dir] = ''
+	let s:cache[a:dir].proj_dir = proj_dir
+	call s:log_cache()
 
 	return proj_dir
 endfunction
 
 " Sets 'grepprg', 'grepformat', and 'path' for :grep, :find, etc.
 function s:set_opts()
-	let proj_dir = s:get_proj_dir(getcwd())
+	call s:debug('set_opts()')
 
-	if empty(proj_dir)
+	let path = s:get_path(getcwd())
+
+	if empty(path)
+		call s:debug('not setting opts because empty path')
 		return
 	endif
 
-	let subdirs = s:get_subdirs(proj_dir)
-	if !empty(subdirs)
-		let &path = subdirs
-	endif
-
+	call s:debug('setting grep opts and path='..path)
+	let &path = path
 	set grepprg=git\ grep\ -I\ -n\ --column
 	set grepformat=%f:%l:%c:%m
 endfunction
 
-" Returns all the subdirectories of proj_dir, separated by commas;
-" otherwise returns 0
-function s:get_subdirs(proj_dir)
-	call s:debug('get_subdirs('..a:proj_dir..')')
+function s:get_path(dir)
+	call s:debug('get_path('..a:dir..')')
 
-	if has_key(s:cache, a:proj_dir) && !empty(s:cache[a:proj_dir])
-		call s:debug('cache hit: '..s:cache[a:proj_dir])
-		return s:cache[a:proj_dir]
+	" first check the cache
+	if !has_key(s:cache, a:dir)
+		let s:cache[a:dir] = {}
+	endif
+	if has_key(s:cache[a:dir], 'path')
+		call s:debug('cache hit: '..s:cache[a:dir].path)
+		return s:cache[a:dir].path
 	endif
 
 	" TODO make this async
-	let cmd = 'git -C '..shellescape(a:proj_dir)
-				\..' ls-tree -rd --name-only HEAD'
+	let cmd = 'git -C '..shellescape(a:dir)..' ls-tree -rd --name-only HEAD'
 	call s:debug('cache miss. running: '..cmd)
-	let subdirs = join(systemlist(cmd), ',')..',,'
-	call s:debug('result: '..subdirs)
+	let cmd_result = join(systemlist(cmd), ',')..',,'
+	call s:debug('result: '..cmd_result)
 
-	if v:shell_error
-		call s:debug('v:shell_error = '..v:shell_error)
-		return
-	endif
+	let path = v:shell_error ? 0 : cmd_result
 
-	let s:cache[a:proj_dir] = subdirs
+	let s:cache[a:dir].path = path
+	call s:log_cache()
 
-	return subdirs
+	return path
 endfunction
 
 " Modified from the example in :help setting-tabline
