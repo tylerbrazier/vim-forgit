@@ -36,7 +36,8 @@ let s:cache = {}
 
 augroup forgit
 	autocmd!
-	autocmd BufEnter * call s:lcd_to_proj_root()
+	" needs ++nested so :lcd will trigger other autocmds
+	autocmd BufEnter * ++nested call s:lcd_to_proj_root()
 	autocmd VimEnter,DirChanged * call s:set_opts()
 augroup END
 
@@ -88,8 +89,6 @@ function s:lcd_to_proj_root()
 
 	call s:debug(':lcd '..proj_dir)
 	execute 'lcd' proj_dir
-	" need to call set_opts() manually (:help autocmd-nested)
-	call s:set_opts()
 endfunction
 
 " Sets 'grepprg', 'grepformat', and 'path' for :grep, :find, etc.
