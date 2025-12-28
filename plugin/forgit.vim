@@ -42,7 +42,7 @@ augroup forgit
 augroup END
 
 if empty(&tabline)
-	set tabline=%!ForgitTabline()
+	set tabline=%!ForgitTabLine()
 endif
 
 function s:debug(message)
@@ -163,7 +163,7 @@ function s:get_path(dir)
 endfunction
 
 " Modified from the example in :help setting-tabline
-function ForgitTabline()
+function ForgitTabLine()
 	let tabline = ''
 	for i in range(tabpagenr('$'))
 		" select the highlighting
