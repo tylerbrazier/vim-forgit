@@ -10,8 +10,8 @@ This plugin includes autocommands that will:
 - `:lcd` to the project root when editing a file in git project
 - set `path` (for `:find`, etc.) and `grepprg` when the cwd is in a git project
 
-If you haven't defined your own `tabline`, forgit will show the project
-directory for each tab, useful when you have multiple projects open at once.
+It also shows the current git project in the statusline and tabline,
+unless you set those options.
 
 ## Why not lua?
 
@@ -24,7 +24,6 @@ directory for each tab, useful when you have multiple projects open at once.
 - don't `:lcd` if `autochdir` is on
 - if a tab has two repos show them both like `repoA|repoB`
 - if there's more than two should they all be shown?
-- show project dir in statusline
 - how will it work with submodules?
 - restore opts when moving out of a git project
 - make git calls async (then also don't need to worry about nested autocmds)

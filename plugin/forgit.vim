@@ -41,6 +41,10 @@ augroup forgit
 	autocmd VimEnter,DirChanged * call s:set_opts()
 augroup END
 
+if empty(&statusline)
+	set statusline=%!ForgitStatusLine()
+endif
+
 if empty(&tabline)
 	set tabline=%!ForgitTabLine()
 endif
@@ -160,6 +164,15 @@ function s:get_path(dir)
 	call s:log_cache()
 
 	return path
+endfunction
+
+function ForgitStatusLine()
+	return '%f %{ForgitProject("(", ")")}%h%w%m%r%=%-14.(%l,%c%V%) %P'
+endfunction
+
+function ForgitProject(prefix = '', postfix = '')
+	let proj = s:get_proj_dir(expand('%:p:h'))
+	return empty(proj) ? '' : a:prefix..fnamemodify(proj, ':t')..a:postfix
 endfunction
 
 " Modified from the example in :help setting-tabline
