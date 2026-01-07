@@ -21,6 +21,7 @@ unless you set those options.
 
 ## TODO
 
+- show cwd in statusline/tabline relative to git dir
 - don't `:lcd` if `autochdir` is on
 - if a tab has two repos show them both like `repoA|repoB`
 - if there's more than two should they all be shown?

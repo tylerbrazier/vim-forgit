@@ -79,20 +79,24 @@ endfunction
 
 " :lcd to the git project directory of the current file
 function s:lcd_to_proj_root()
+	call s:debug('lcd_to_proj_root()')
+
 	" buftype is empty for a normal file
 	if !empty(&buftype)
 		call s:debug('skipping :lcd because buftype='..&buftype)
 		return
 	endif
 
-	let proj_dir = s:get_proj_dir(expand('%:p:h'))
+	" will cd to git project dir, otherwise global cwd
+	let cd_to = s:get_proj_dir(expand('%:p:h')) ?? getcwd(-1, -1)
 
-	if empty(proj_dir) || proj_dir == getcwd()
+	if cd_to == getcwd()
+		call s:debug('skipping :lcd since getcwd() is already '..cd_to)
 		return
 	endif
 
-	call s:debug(':lcd '..proj_dir)
-	execute 'lcd' proj_dir
+	call s:debug(':lcd '..cd_to)
+	execute 'lcd' cd_to
 endfunction
 
 " Sets 'grepprg', 'grepformat', and 'path' for :grep, :find, etc.
