@@ -170,12 +170,11 @@ function s:get_path(dir)
 endfunction
 
 function ForgitStatusLine()
-	return '%f %{ForgitProject(winnr())}%h%w%m%r%= %l,%c%V %P'
+	return '%f %{ForgitStatusDir(winnr())}%h%w%m%r%= %l,%c%V %P'
 endfunction
 
-function ForgitProject(winnr, prefix = '(', postfix = ')')
-	let proj = s:get_proj_dir(getcwd(a:winnr))
-	return empty(proj) ? '' : a:prefix..fnamemodify(proj, ':t')..a:postfix
+function ForgitStatusDir(winnr, prefix = '(', postfix = ')')
+	return a:prefix..fnamemodify(getcwd(a:winnr), ':t')..a:postfix
 endfunction
 
 " Modified from the example in :help setting-tabline
