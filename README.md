@@ -7,7 +7,7 @@ like `:grep` and `:term` but managing it is a burden,
 especially when working in multiple projects at once.
 This plugin includes autocommands that will:
 
-- `:lcd` to the project root when editing a file in git project
+- `:lcd` to the project root when editing a file in a git project
 - set `path` (for `:find`, etc.) and `grepprg` when the cwd is in a git project
 
 It also shows the current git project in the statusline and tabline,

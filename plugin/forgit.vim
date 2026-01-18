@@ -26,12 +26,11 @@ let s:debug_log = expand('$HOME/.forgit.log')
 " 		'path': 'dir,,'
 " 	},
 "
-" 	'/another/working/dir': {
+" 	'/another/working/dir': {	(not in a git project)
 " 		'proj_dir': 0,
 " 		'path': 0
 " 	}
 " }
-" The second entry is the cache isn't a part of a git project.
 let s:cache = {}
 
 augroup forgit
