@@ -279,6 +279,37 @@ function s:merge(list, item, limit = 3, overflow = '...')
 	return 0
 endfunction
 
+" get the name of the file in a window
+function s:win_fname(wid)
+	let bufnr = winbufnr(a:wid)
+	let name = bufname(bufnr)
+
+	if empty(name)
+		return '[No Name]'
+	endif
+
+	let buftype = getbufvar(bufnr, '&buftype')
+
+	if buftype == 'help'
+		return '[Help]'
+	endif
+
+	if buftype == 'terminal'
+		" use the cmd part from "term://{cwd}//{pid}:{cmd}"
+		" (:help terminal-start)
+		let cmd = split(name, ':')[2]
+		return '$ '..split(cmd)[0]  "omit args
+	endif
+
+	" for any other other buftype that's not a regular file
+	if !empty(buftype)
+		return name
+	endif
+
+	" otherwise strip the leading path
+	return fnamemodify(name, ':t')
+endfunction
+
 function s:debug(message, obj = v:null)
 	if empty(g:debug_forgit)
 		return
@@ -354,9 +385,7 @@ function ForgitTabLabel(tabnr)
 
 			" if it's the only window, just show the filename
 			if len(wids) == 1
-				let file = bufname(winbufnr(wid))
-				let name = empty(file) ? '[No Name]' : file
-				return fnamemodify(name,':t')
+				return s:win_fname(wid)
 			endif
 
 			" otherwise use the cwd of the file
