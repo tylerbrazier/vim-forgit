@@ -298,7 +298,7 @@ function s:win_fname(wid)
 		" use the cmd part from "term://{cwd}//{pid}:{cmd}"
 		" (:help terminal-start)
 		let cmd = split(name, ':')[2]
-		return '$ '..split(cmd)[0]  "omit args
+		return split(cmd)[0]  "omit args
 	endif
 
 	" for any other other buftype that's not a regular file
