@@ -25,11 +25,15 @@ augroup forgit
 	autocmd VimEnter,DirChanged * call s:set_opts()
 augroup END
 
-if empty(&statusline)
+":help :set-verbose
+let s:is_default = {opt->execute('verbose set '..opt..'?') !~# 'Last set from'}
+
+if s:is_default('statusline')
+	let s:default_statusline = &statusline
 	set statusline=%!ForgitStatusLine()
 endif
 
-if empty(&tabline)
+if s:is_default('tabline')
 	set tabline=%!ForgitTabLine()
 endif
 
@@ -330,7 +334,13 @@ function s:debug(message, obj = v:null)
 endfunction
 
 function ForgitStatusLine()
-	return '%f (%{ForgitWD(winnr())})%h%w%m%r%= %l,%c%V %P'
+	let stl_f_cwd = '%f (%{ForgitWD(winnr())})'
+	" in vim the default is an empty string
+	" in neovim 0.12+ the default has a value
+	if empty(s:default_statusline)
+		return stl_f_cwd..'%h%w%m%r%= %l,%c%V %P'
+	endif
+	return substitute(s:default_statusline, '%f ', stl_f_cwd, '')
 endfunction
 
 " Returns the working dir of window/tab
