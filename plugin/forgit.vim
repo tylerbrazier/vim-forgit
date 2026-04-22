@@ -395,7 +395,7 @@ function ForgitTabLabel(tabnr)
 
 			" if it's the only window, just show the filename
 			if len(wids) == 1
-				return a:tabnr..'.'..s:win_fname(wid)
+				return a:tabnr..' '..s:win_fname(wid)
 			endif
 
 			" otherwise use the cwd of the file
@@ -408,5 +408,5 @@ function ForgitTabLabel(tabnr)
 		endif
 	endfor
 
-	return a:tabnr..'.'..join(uniq_dirs, '|')
+	return a:tabnr..' '..join(uniq_dirs, '|')
 endfunction
