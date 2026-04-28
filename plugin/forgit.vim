@@ -57,8 +57,8 @@ function s:set_opts()
 	let &grepformat = '%f:%l:%c:%m'
 endfunction
 
-" Given a dir like /home/tyler/proj/src
-" returns a string for the 'path' option like 'tools,tools/misc,,'
+" Given a dir like /home/tyler/proj/src (with subdirs 'lib' & 'tools/misc')
+" returns a string for the 'path' option like 'lib,tools,tools/misc,,'
 " If dir is outside of a git project then return 0.
 function s:get_path(dir)
 	call s:debug('get_path('..a:dir..')')
@@ -140,8 +140,6 @@ function s:get_proj_dir(dir)
 			call s:debug('cache hit parent; returning', cached_dir)
 			return cached_dir
 		endif
-
-
 	endfor
 
 	" TODO make this async
@@ -166,11 +164,11 @@ function s:get_proj_dir(dir)
 	return result
 endfunction
 
-" Given a proj_dir like:	/home/tyler/proj
-" and wd like:			/home/tyler/proj/src
-" and path list like:		['src', 'src/tools']
+" Given a proj_dir like:  /home/tyler/proj
+" and wd like:            /home/tyler/proj/src
+" and path list like:     ['src', 'src/lib', 'src/tools', 'src/tools/misc']
 " this would return a string suitable to be assigned to 'path' opt
-" e.g. in this case:		'tools,,'
+" e.g. in this case:      ['lib', 'tools', 'tools/misc']
 " Assumes wd is either the same as proj_dir or a subdir of it.
 function s:path_list_to_str(proj_dir, wd, list)
 	call s:debug('path_list_to_str(...)', a:list)
@@ -178,9 +176,9 @@ function s:path_list_to_str(proj_dir, wd, list)
 	call s:debug('wd =', a:wd)
 
 	" Get a bare wd without the project dir part e.g.
-	" proj_dir:	/home/tyler/proj
-	" wd:		/home/tyler/proj/src
-	" then bare_wd:	src
+	" proj_dir:     /home/tyler/proj
+	" wd:           /home/tyler/proj/src
+	" then bare_wd: src
 	let bare_wd = s:trim_parent(a:proj_dir, a:wd)
 
 	let result = []
@@ -219,9 +217,9 @@ function s:path_list_to_str(proj_dir, wd, list)
 	return result
 endfunction
 
-" Given a parent like:	/home/tyler/proj
-" and child like:	/home/tyler/proj/src
-" this would return:	'src'
+" Given a parent like:  /home/tyler/proj
+" and child like:       /home/tyler/proj/src
+" this would return:    'src'
 " Otherwise returns 0 if either
 " - parent == child
 " - child is not a subdir of parent
@@ -247,9 +245,9 @@ endfunction
 
 " Adds item to list if not already there.
 " If len(list) is at the limit then return 1, otherwise return 0.
-" Use overflow str as the last item (if it's longer than the overflow).
-function s:merge(list, item, limit = 3, overflow = '...')
-	call s:debug('merging('..a:item..') into', a:list)
+" Use overflow string as the last item if the limit is reached.
+function s:limited_add(list, item, limit = 3, overflow = '...')
+	call s:debug('limited_add('..a:item..') into', a:list)
 
 	if len(a:list) >= a:limit
 		call s:debug('list already full. returning 1')
@@ -402,8 +400,8 @@ function ForgitTabLabel(tabnr)
 			let dir = getcwd(wid, a:tabnr)
 		endif
 
-		if s:merge(uniq_dirs, fnamemodify(dir, ':t'))
-			" merge() returns 1 if the list is full
+		if s:limited_add(uniq_dirs, fnamemodify(dir, ':t'))
+			" limited_add() returns 1 if the list is full
 			break
 		endif
 	endfor
